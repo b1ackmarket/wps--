@@ -1,7 +1,7 @@
 #!name = WPS每日签到
 #!desc = WPS每日签到领取会员，支持百度OCR和QwenOCR两种验证码识别方式
 #!author = 小白脸 & Yao Qinsher
-#!homepage = https://github.com/b1ackmarket/Loon-Scripts
+#!homepage = https://github.com/b1ackmarket/wps--
 #!icon = https://raw.githubusercontent.com/deezertidal/private/main/icons/wps.png
 #!date = 2024-05-08
 
@@ -15,9 +15,9 @@ MAX_RETRIES = input,"5",tag=最大重试次数,desc=签到失败时的最大重�
 COOKIE_ENABLE = switch,true,tag=启用获取Cookie,desc=是否启用获取Cookie的脚本
 
 [Script]
-http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://raw.githubusercontent.com/b1ackmarket/Loon-Scripts/main/WPS_Cookie.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable={COOKIE_ENABLE}
+http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/wps/wps.cookie.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable={COOKIE_ENABLE}
 
-cron "0 8 * * *" script-path=https://raw.githubusercontent.com/b1ackmarket/Loon-Scripts/main/WPS_Checkin.js, timeout=120, tag=WPS每日签到, argument=AK={AK}&SK={SK}&OCR_TYPE={OCR_TYPE}&QWEN_COOKIE={QWEN_COOKIE}&DAY={DAY}&MAX_RETRIES={MAX_RETRIES}
+cron "CRONEXP" script-path=https://kelee.one/Resource/Script/WPS/WPS_checkin.js, timeout=120, tag=WPS每日签到
 
 [MITM]
 hostname = moapi.wps.cn
