@@ -19,9 +19,9 @@ MAX_RETRIES = input,"5",tag=签到失败最大重试次数,desc=签到失败时�
 CRONEXP = input,"0 8 * * *",tag=定时签到表达式,desc=设置每日自动签到任务的CRON表达式。
 
 [Script]
-http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/refs/heads/main/WPS_Checkin.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable={CaptureCookie}
+http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/refs/heads/main/WPS_Checkin.js, requires-body=true, tag=WPS获取Cookie, enable={CaptureCookie}
 
-cron {CRONEXP} script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/refs/heads/main/WPS_Checkin.js, timeout=120, tag=WPS每日签到, enable=true, argument=[{AK},{SK},{QWEN_COOKIE},{OCR_TYPE},{DAY},{MAX_RETRIES}]
+cron {CRONEXP} script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/refs/heads/main/WPS_Checkin.js, timeout=120, tag=WPS每日签到, argument=[{AK},{SK},{QWEN_COOKIE},{OCR_TYPE},{DAY},{MAX_RETRIES}]
 
 [MITM]
 hostname = moapi.wps.cn
