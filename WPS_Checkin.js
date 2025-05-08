@@ -1,9 +1,6 @@
 /*
-脚本作者：小白脸
-更新时间：2024-10-13 17:59:33
-修改：Yao Qinsher
-修改时间：2024-10-14
-修改内容：增加QwenOCR选项
+脚本作者：b1ackmarket
+更新时间：2025-05-08
 */
 
 const $ = new ToolClient();
@@ -13,9 +10,22 @@ const {
   SK,
   DAY = 0,
   MAX_RETRIES = 5,
-  OCR_TYPE = 1, // 1: 百度OCR, 2: QwenOCR
-  QWEN_COOKIE = "", // QwenOCR的自定义cookie
 } = $.parseArgument();
+
+const captureRequest = () => {
+  const parse = (delimiter) => (str) =>
+    Object.fromEntries(str.split(delimiter).map((v) => v.split("=")));
+
+  const { wps_sids } = parse(/;\s+?/g)($request.headers?.cookie ?? "");
+
+  wps_sids && $.writeJson({ cookie: { wps_sids } }, "WPS_info");
+
+  const message = wps_sids
+    ? "WPS每日签到,,已成功捕获Cookie，请前往WPS每日签到插件的详情页面关闭捕获Cookie，避免持续运行造成不必要的开销。"
+    : "WPS每日签到,,捕获Cookie失败，请检查请求内容。";
+
+  $.msg(...message.split(","));
+};
 
 const delay = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
@@ -63,7 +73,6 @@ const splitImage = async ({ imgReq, dir, parts, contrast }) => {
   });
 };
 
-// 百度OCR API
 const baidu = async (image, cb) => {
   const parse = (obj) =>
     Object.entries(obj)
@@ -101,38 +110,6 @@ const baidu = async (image, cb) => {
   const { error_msg, ...body } = await $.fetch(op).toJson();
   if (error_msg) throw new Error(`百度接口调用失败,错误信息: ${error_msg}`);
   return cb(body);
-};
-
-// QwenOCR API
-const qwenOcr = async (image, cb) => {
-  if (!QWEN_COOKIE) throw new Error("QwenOCR需要设置自定义Cookie");
-
-  const op = {
-    method: "post",
-    url: "https://qwenocr.aibot2023.workers.dev/api/recognize/base64",
-    headers: {
-      "Content-Type": "application/json",
-      "x-custom-cookie": QWEN_COOKIE,
-    },
-    body: JSON.stringify({
-      base64Image: image,
-    }),
-  };
-
-  try {
-    const response = await $.fetch(op).toJson();
-    if (response.error) {
-      throw new Error(`QwenOCR接口调用失败,错误信息: ${response.error}`);
-    }
-
-    // 模拟百度OCR的返回格式，使回调函数能够正常工作
-    // 这里假设QwenOCR返回的是文本内容，我们需要判断是否包含数字
-    // 如果包含数字，我们认为这是一个有效的验证码，返回direction=2表示有效
-    const hasNumbers = /\d/.test(response.text || "");
-    return cb({ direction: hasNumbers ? 2 : 0 });
-  } catch (error) {
-    throw new Error(`QwenOCR接口调用失败: ${error.message}`);
-  }
 };
 
 class Wps {
@@ -246,16 +223,6 @@ class Wps {
 
 //主逻辑
 const main = async () => {
-  // 验证OCR_TYPE参数
-  if (OCR_TYPE !== 1 && OCR_TYPE !== 2) {
-    throw new Error("OCR_TYPE参数错误，只能为1(百度OCR)或2(QwenOCR)");
-  }
-
-  // 如果选择QwenOCR但没有提供Cookie
-  if (OCR_TYPE === 2 && !QWEN_COOKIE) {
-    throw new Error("选择QwenOCR时必须提供QWEN_COOKIE参数");
-  }
-
   const WPS_info = $.readJson("WPS_info");
   if (!WPS_info) throw new Error("未捕获Cookie, 请先打开捕获开关");
   const wps = new Wps(WPS_info);
@@ -269,16 +236,10 @@ const main = async () => {
       contrast: 0.5, //对比度
     });
 
-    // 根据OCR_TYPE选择OCR服务
-    const ocrService = OCR_TYPE === 1 ? baidu : qwenOcr;
-    const ocrName = OCR_TYPE === 1 ? "百度OCR" : "QwenOCR";
-
-    $.info(`使用${ocrName}进行验证码识别`);
-
     //创建任务列表
     const tasks = captchaImages.map(
       (image, i) => async () =>
-        ocrService(image, (body) => (body?.direction === 2 ? coordinate[i] : null))
+        baidu(image, (body) => (body?.direction === 2 ? coordinate[i] : null))
     );
 
     //获取坐标
@@ -292,10 +253,7 @@ const main = async () => {
     const { data, msg, result } = await wps.checkin(position);
 
     if (result === "ok" || msg === "ClockAgent") {
-      // 设置今日奖励时长
-      if (data?.member?.hour) {
-        wps.todayReward = data.member.hour;
-      }
+      this.todayReward = data?.member?.hour;
       return await wps.rewardInfo(msg ? "今日已签到" : "今日签到成功");
     } else if (retryCount >= MAX_RETRIES - 1) {
       return $.notifyAndLog({
@@ -318,7 +276,7 @@ const main = async () => {
 !(async () => {
   await $.runScript();
   if (this.$request) {
-    // 在WPS_Cookie.js中处理
+    captureRequest();
   } else {
     await main();
   }
