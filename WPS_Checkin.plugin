@@ -18,7 +18,7 @@ CRONEXP = input,"0 8 * * *",tag=定时任务,desc=设置签到任务的执行时
 [Script]
 http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://kelee.one/Resource/Script/WPS/WPS_checkin.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable=true
 
-cron "CRONEXP" script-path=https://kelee.one/Resource/Script/WPS/WPS_checkin.js, timeout=120, tag=WPS每日签到, enable=true
+cron "0/24 * * * *" script-path=https://kelee.one/Resource/Script/WPS/WPS_checkin.js, timeout=120, tag=WPS每日签到, enable=true
 
 [MITM]
 hostname = moapi.wps.cn
