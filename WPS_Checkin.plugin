@@ -1,23 +1,25 @@
-#!name = WPS每日签到
-#!desc = WPS每日签到领取会员，支持百度OCR和QwenOCR两种验证码识别方式
-#!author = 小白脸 & b1ackmarket
-#!homepage = https://github.com/b1ackmarket/wps--
-#!icon = https://raw.githubusercontent.com/deezertidal/private/main/icons/wps.png
-#!date = 2024-05-09
+#!name = WPS签到
+#!desc = WPS每日签到插件，自动完成签到任务并获取会员奖励。需要配合百度OCR API使用。
+#!author = b1ackmarket, Cline
+#!homePage = 
+#!data = 2025-05-08
+#!icon = https://raw.githubusercontent.com/Loon0x00/Loon0x00.github.io/main/static/img/loon.png
+#!system = ios,tvos,macos
+#!system_version = 300
+#!loon_version = 3.2.1(734)
+#!tag = 签到,WPS,工具,OCR
 
 [Argument]
-AK = input,"",tag=百度API Key,desc=使用百度OCR时需要填写
-SK = input,"",tag=百度Secret Key,desc=使用百度OCR时需要填写
-QWEN_COOKIE = input,"",tag=QwenOCR Cookie,desc=使用QwenOCR时需要填写
-OCR_TYPE = select,"1","2",tag=OCR类型,desc=1为百度OCR，2为QwenOCR
-DAY = input,"0",tag=兑换会员天数,desc=自动兑换会员天数，0表示不自动兑换
-MAX_RETRIES = input,"5",tag=最大重试次数,desc=签到失败时的最大重试次数
-COOKIE_ENABLE = switch,true,tag=启用获取Cookie,desc=是否启用获取Cookie的脚本
-CRONEXP = input,"0 8 * * *",tag=定时任务,desc=设置签到任务的执行时间
+AK = input,"",tag=百度OCR AK,desc=请输入百度OCR API Key (AK)
+SK = input,"",tag=百度OCR SK,desc=请输入百度OCR Secret Key (SK)
+DAY = input,"0",tag=VIP兑换天数,desc=当会员小时数大于24小时，自动兑换的天数。0表示不兑换。
+MAX_RETRIES = input,"5",tag=最大重试次数,desc=签到失败时的最大重试次数，默认为5。
+cookieCaptureEnable = switch,true,tag=捕获Cookie开关,desc=开启后，访问WPS相关页面可自动捕获Cookie。获取成功后请关闭此开关以避免不必要的开销。
+cronTime = input,"0 10 * * *",tag=定时签到Cron,desc=定时执行签到任务的Cron表达式，例如每天上午10点执行："0 10 * * *"
 
 [Script]
-http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://kelee.one/Resource/Script/WPS/WPS_checkin.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable=true
-cron "CRONEXP" script-path=https://kelee.one/Resource/Script/WPS/WPS_checkin.js, timeout=120, tag=WPS每日签到, enable=true
+http-request ^https?://.*\.wps\.cn/ script-path=WPS_checkin.js,tag=WPS获取Cookie,enable={cookieCaptureEnable}
+cron {cronTime} script-path=WPS_checkin.js,tag=WPS每日签到,argument=[{AK},{SK},{DAY},{MAX_RETRIES}],enable=true
 
 [MITM]
-hostname = moapi.wps.cn
+hostname = account.wps.cn, vip.wps.cn, personal-act.wps.cn, vipapi.wps.cn, aip.baidubce.com
