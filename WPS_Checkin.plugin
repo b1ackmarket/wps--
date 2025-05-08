@@ -1,25 +1,27 @@
 #!name = WPS每日签到myversion
-#!desc = WPS每日签到领取会员，支持百度OCR和QwenOCR两种验证码识别方式
+#!desc = WPS每日签到领取会员，支持百度OCR和QwenOCR两种验证码识别方式。请在插件详情页配置所需参数。
+#!openUrl = https://github.com/b1ackmarket/wps--
 #!author = 小白脸 & b1ackmarket
+#!tag = 签到,WPS,OCR
+#!loon_version = 3.2.4
 #!homepage = https://github.com/b1ackmarket/wps--
 #!icon = https://raw.githubusercontent.com/deezertidal/private/main/icons/wps.png
 #!date = 2024-05-08
 
 [Argument]
+CaptureCookie = switch, "false", "true", tag = 捕获WPS Cookie, desc = 开启以捕获WPS App的Cookie，成功后请关闭此开关。
 AK = input,"",tag=百度API Key,desc=使用百度OCR时需要填写 (OCR_TYPE=1时)
 SK = input,"",tag=百度Secret Key,desc=使用百度OCR时需要填写 (OCR_TYPE=1时)
 QWEN_COOKIE = input,"",tag=QwenOCR Cookie,desc=使用QwenOCR时需要填写 (OCR_TYPE=2时)
-OCR_TYPE = select,"1","2",tag=OCR类型,desc=1为百度OCR，2为QwenOCR
-DAY = input,"0",tag=兑换会员天数,desc=自动兑换会员天数，0表示不自动兑换
-MAX_RETRIES = input,"5",tag=最大重试次数,desc=签到失败时的最大重试次数
-COOKIE_ENABLE = switch,true,tag=启用获取Cookie,desc=是否启用获取Cookie的脚本
-CRONEXP = input,"0 8 * * *",tag=定时任务,desc=设置签到任务的执行时间
+OCR_TYPE = select,"1","2",tag=OCR识别方案,desc=1为百度OCR，2为QwenOCR
+DAY = input,"0",tag=自动兑换会员天数,desc=签到积分足够时，自动兑换的会员天数，0表示不自动兑换。
+MAX_RETRIES = input,"5",tag=签到失败最大重试次数,desc=签到失败时的最大重试次数，仅允许填写阿拉伯数字。
+CRONEXP = input,"0 8 * * *",tag=定时签到表达式,desc=设置每日自动签到任务的CRON表达式。
 
 [Script]
-http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/main/WPS_Checkin.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable=true
+http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/refs/heads/main/WPS_Checkin.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable={CaptureCookie}
 
-cron {CRONEXP} script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/main/WPS_Checkin.js, timeout=120, tag=WPS每日签到, enable=true
-
+cron {CRONEXP} script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/refs/heads/main/WPS_Checkin.js, timeout=120, tag=WPS每日签到, enable=true
 
 [MITM]
 hostname = moapi.wps.cn
