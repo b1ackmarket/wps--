@@ -16,9 +16,9 @@ COOKIE_ENABLE = switch,true,tag=启用获取Cookie,desc=是否启用获取Cookie
 CRONEXP = input,"0 8 * * *",tag=定时任务,desc=设置签到任务的执行时间
 
 [Script]
-http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/master/WPS_checkin.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable=true
+http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/main/WPS_Checkin.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable=true
 
-cron {CRONEXP} script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/master/WPS_checkin.js, timeout=120, tag=WPS每日签到, enable=true
+cron {CRONEXP} script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/main/WPS_Checkin.js, timeout=120, tag=WPS每日签到, enable=true
 
 
 [MITM]
