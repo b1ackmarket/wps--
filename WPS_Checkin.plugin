@@ -21,7 +21,7 @@ CRONEXP = input,"0 8 * * *",tag=定时签到表达式,desc=设置每日自动签
 [Script]
 http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/refs/heads/main/WPS_Checkin.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable={CaptureCookie}
 
-cron {CRONEXP} script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/refs/heads/main/WPS_Checkin.js, timeout=120, tag=WPS每日签到, enable=true, argument="AK={AK}&SK={SK}&QWEN_COOKIE={QWEN_COOKIE}&OCR_TYPE={OCR_TYPE}&DAY={DAY}&MAX_RETRIES={MAX_RETRIES}"
+cron {CRONEXP} script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/refs/heads/main/WPS_Checkin.js, timeout=120, tag=WPS每日签到, enable=true, argument=[{AK},{SK},{QWEN_COOKIE},{OCR_TYPE},{DAY},{MAX_RETRIES}]
 
 [MITM]
 hostname = moapi.wps.cn
