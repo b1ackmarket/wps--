@@ -8,6 +8,8 @@ $.getScript`https://cdn.jsdelivr.net/npm/fabric@latest/dist/fabric.min.js`;
 const {
   AK,
   SK,
+  QWEN_COOKIE,
+  OCR_TYPE = "1", // Default to Baidu OCR
   DAY = 0,
   MAX_RETRIES = 5,
 } = $.parseArgument();
@@ -110,6 +112,34 @@ const baidu = async (image, cb) => {
   const { error_msg, ...body } = await $.fetch(op).toJson();
   if (error_msg) throw new Error(`百度接口调用失败,错误信息: ${error_msg}`);
   return cb(body);
+};
+
+const qwenOcr = async (image, cb) => {
+  if (!QWEN_COOKIE) {
+    throw new Error("QwenOCR Cookie 未配置");
+  }
+  const op = {
+    method: "post",
+    url: "https://qwenocr.aibot2023.workers.dev/api/recognize/base64",
+    headers: {
+      "Content-Type": "application/json",
+      "x-custom-cookie": QWEN_COOKIE,
+    },
+    body: JSON.stringify({
+      base64Image: image,
+    }),
+  };
+
+  try {
+    const body = await $.fetch(op).toJson();
+    if (body && body.text !== undefined) { // Check if text field exists
+      return cb(body);
+    } else {
+      throw new Error(`QwenOCR 接口调用成功，但响应格式不正确或未包含文本: ${JSON.stringify(body)}`);
+    }
+  } catch (error) {
+    throw new Error(`QwenOCR 接口调用失败, 错误信息: ${error.message || JSON.stringify(error)}`);
+  }
 };
 
 class Wps {
@@ -237,9 +267,23 @@ const main = async () => {
     });
 
     //创建任务列表
+    let ocrFunction;
+    let ocrCallback;
+
+    if (OCR_TYPE === "2") {
+      $.info("使用 QwenOCR 进行验证码识别");
+      ocrFunction = qwenOcr;
+      // QwenOCR 成功条件：返回的 body 中有 text 字段且非空字符串
+      ocrCallback = (body, i) => (body?.text ? coordinate[i] : null);
+    } else {
+      $.info("使用百度OCR 进行验证码识别");
+      ocrFunction = baidu;
+      ocrCallback = (body, i) => (body?.direction === 2 ? coordinate[i] : null);
+    }
+
     const tasks = captchaImages.map(
       (image, i) => async () =>
-        baidu(image, (body) => (body?.direction === 2 ? coordinate[i] : null))
+        ocrFunction(image, (body) => ocrCallback(body, i)) // Pass index i to callback
     );
 
     //获取坐标

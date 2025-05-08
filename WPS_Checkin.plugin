@@ -6,9 +6,9 @@
 #!date = 2024-05-08
 
 [Argument]
-AK = input,"",tag=百度API Key,desc=使用百度OCR时需要填写
-SK = input,"",tag=百度Secret Key,desc=使用百度OCR时需要填写
-QWEN_COOKIE = input,"",tag=QwenOCR Cookie,desc=使用QwenOCR时需要填写
+AK = input,"",tag=百度API Key,desc=使用百度OCR时需要填写 (OCR_TYPE=1时)
+SK = input,"",tag=百度Secret Key,desc=使用百度OCR时需要填写 (OCR_TYPE=1时)
+QWEN_COOKIE = input,"",tag=QwenOCR Cookie,desc=使用QwenOCR时需要填写 (OCR_TYPE=2时)
 OCR_TYPE = select,"1","2",tag=OCR类型,desc=1为百度OCR，2为QwenOCR
 DAY = input,"0",tag=兑换会员天数,desc=自动兑换会员天数，0表示不自动兑换
 MAX_RETRIES = input,"5",tag=最大重试次数,desc=签到失败时的最大重试次数
@@ -16,11 +16,9 @@ COOKIE_ENABLE = switch,true,tag=启用获取Cookie,desc=是否启用获取Cookie
 CRONEXP = input,"0 8 * * *",tag=定时任务,desc=设置签到任务的执行时间
 
 [Script]
-cron "0/24 * * * *" script-path=https://raw.githubusercontent.com/Loon0x00/LoonExampleConfig/master/Script/plugin_example.js,tag = pluginExample, enable=true
+http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/master/WPS_checkin.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable=true
 
-http-request ^https:\/\/moapi\.wps\.cn\/app\/ios\/v1\/app$ script-path=https://kelee.one/Resource/Script/WPS/WPS_checkin.js, requires-body=true, timeout=20, tag=WPS获取Cookie, enable=true
-
-cron {CRONEXP} script-path=https://kelee.one/Resource/Script/WPS/WPS_checkin.js, timeout=120, tag=WPS每日签到, enable=true
+cron {CRONEXP} script-path=https://raw.githubusercontent.com/b1ackmarket/wps--/master/WPS_checkin.js, timeout=120, tag=WPS每日签到, enable=true
 
 
 [MITM]
